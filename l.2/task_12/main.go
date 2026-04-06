@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -13,6 +14,12 @@ type Config struct {
 	contextA int
 	contextB int
 	contextC int
+	nFlag    bool
+	cFlag    bool
+	FFlag    bool
+	iFlag    bool
+	vFlag    bool
+	countStr int
 	template string   //шаблон для поиска
 	files    []string //файлы в которых нужно совершать поиск
 }
@@ -43,6 +50,11 @@ func parseFlags() Config {
 	flag.IntVar(&cfg.contextA, "A", 0, "после каждой найденной строки дополнительно вывести N строк после неё.")
 	flag.IntVar(&cfg.contextB, "B", 0, "вывести N строк до каждой найденной строки.")
 	flag.IntVar(&cfg.contextC, "C", 0, "вывести N строк контекста вокруг найденной строки.")
+	flag.BoolVar(&cfg.cFlag, "c", false, "выводит только количество строк, совпадающих с шаблоном")
+	flag.BoolVar(&cfg.nFlag, "n", false, "выводит номер строки передкаждой найденной строкой")
+	flag.BoolVar(&cfg.FFlag, "F", false, "воспринимает шаблон как фиксированную строку, а не регулярное выражение")
+	flag.BoolVar(&cfg.iFlag, "i", false, "игнорирует регистр")
+	flag.BoolVar(&cfg.vFlag, "v", false, "инвертирует фильтр: выводить строки не содержащие шаблон")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Использование: %s [опции] шаблон [файл]...\n", os.Args[0])
@@ -82,154 +94,302 @@ func processFile(filename string, cfg *Config) {
 
 // обработка данных чтением
 func processRead(reader *os.File, cfg *Config) {
-	scanner := bufio.NewScanner(reader)
 
-	//lineNum := 1
+	cfg.countStr = 0
 
-	if cfg.contextB != 0 {
-		strArr := make([]string, cfg.contextB)
+	switch {
+	case cfg.cFlag:
 
-		for scanner.Scan() {
-			line := scanner.Text()
-			if strings.Contains(line, cfg.template) {
-				for _, str := range strArr {
-					if str != "" {
-						fmt.Println(str)
-					}
-				}
-				fmt.Println(line)
-				fmt.Println("--------")
-			}
+		count := countMatches(reader, cfg)
+		fmt.Println(count)
 
-			for i := 1; i < len(strArr); i++ {
-				strArr[i-1] = strArr[i]
-			}
-			strArr[len(strArr)-1] = line
-		}
+	case cfg.contextC != 0:
+		ContextC(reader, cfg)
 
-		if err := scanner.Err(); err != nil {
-			log.Printf("Ошибка чтения: %v", err)
-		}
-	} else if cfg.contextA != 0 {
-		lineNum := 0
-		strArr := make(map[int][]string)
-		countLines := make([]int, 0)
+	case cfg.contextA != 0 && cfg.contextB != 0:
 
-		for scanner.Scan() {
-			line := scanner.Text()
+		ContextBoth(reader, cfg)
 
-			if strings.Contains(line, cfg.template) {
-				strArr[lineNum] = make([]string, 0)
-				countLines = append(countLines, lineNum)
-				lineNum++
-			}
+	case cfg.contextA != 0:
 
-			delEl := make([]int, 0)
-			for i := 0; i < len(countLines); i++ {
-				strArr[countLines[i]] = append(strArr[countLines[i]], line)
-				if len(strArr[countLines[i]]) == cfg.contextA+1 {
-					delEl = append(delEl, i)
-				}
-			}
+		ContextA(reader, cfg)
 
-			for _, i := range delEl {
-				countLines = append(countLines[:i], countLines[i+1:]...)
-			}
-		}
+	case cfg.contextB != 0:
 
-		if err := scanner.Err(); err != nil {
-			log.Printf("Ошибка чтения: %v", err)
-		}
+		ContextB(reader, cfg)
 
-		for i := 0; i < len(strArr); i++ {
-			for _, str := range strArr[i] {
-				if str != "" {
-					fmt.Println(str)
-				}
-			}
-			fmt.Println("--------")
-		}
-	} else {
-		for scanner.Scan() {
-			line := scanner.Text()
-			if strings.Contains(line, cfg.template) {
-				fmt.Println(line)
-			}
-			//lineNum++
-		}
-
-		if err := scanner.Err(); err != nil {
-			log.Printf("Ошибка чтения: %v", err)
-		}
+	default:
+		SimpleGrep(reader, cfg)
 	}
 }
 
 func ContextA(reader *os.File, cfg *Config) {
 	scanner := bufio.NewScanner(reader)
-	lineNum := 0
-	strArr := make(map[int][]string)
-	countLines := make([]int, 0)
+	separator := false
+	lastSeparator := false
+	outStr := 0 // счётчик вывода строк после найденного совпадения
 
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		if strings.Contains(line, cfg.template) {
-			strArr[lineNum] = make([]string, 0)
-			countLines = append(countLines, lineNum)
-			lineNum++
+		if cfg.Matches(line) {
+			outStr = cfg.contextA
+			cfg.countStr++
+			cfg.Print(line)
+			separator = true
+			continue
 		}
 
-		delEl := make([]int, 0)
-		for i := 0; i < len(countLines); i++ {
-			strArr[countLines[i]] = append(strArr[countLines[i]], line)
-			if len(strArr[countLines[i]]) == cfg.contextA+1 {
-				delEl = append(delEl, i)
-			}
+		if outStr > 0 {
+			cfg.countStr++
+			cfg.Print(line)
+			lastSeparator = false
+			outStr--
+			continue
 		}
 
-		for _, i := range delEl {
-			countLines = append(countLines[:i], countLines[i+1:]...)
+		if outStr == 0 && separator {
+			fmt.Println("--------")
+			separator = false
+			lastSeparator = true
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
 		log.Printf("Ошибка чтения: %v", err)
+		return
 	}
 
-	for i := 0; i < len(strArr); i++ {
-		for _, str := range strArr[i] {
-			if str != "" {
-				fmt.Println(str)
-			}
-		}
+	if !lastSeparator {
 		fmt.Println("--------")
 	}
 }
 
 func ContextB(reader *os.File, cfg *Config) {
 	scanner := bufio.NewScanner(reader)
-
-	strArr := make([]string, cfg.contextB)
+	separator := false
+	prevStr := make([]string, 0, cfg.contextB)
 
 	for scanner.Scan() {
+
 		line := scanner.Text()
-		if strings.Contains(line, cfg.template) {
-			for _, str := range strArr {
-				if str != "" {
-					fmt.Println(str)
-				}
+
+		if cfg.Matches(line) {
+			if len(prevStr) == cap(prevStr) && separator {
+				fmt.Println("--------")
 			}
-			fmt.Println(line)
-			fmt.Println("--------")
+			for _, str := range prevStr {
+				cfg.countStr++
+				cfg.Print(str)
+			}
+			cfg.countStr++
+			cfg.Print(line)
+			prevStr = prevStr[:0]
+			separator = true
+			continue
 		}
 
-		for i := 1; i < len(strArr); i++ {
-			strArr[i-1] = strArr[i]
+		if len(prevStr) == cfg.contextB {
+			for i := 1; i < len(prevStr); i++ {
+				prevStr[i-1] = prevStr[i]
+			}
+			prevStr[len(prevStr)-1] = line
+		} else {
+			prevStr = append(prevStr, line)
 		}
-		strArr[len(strArr)-1] = line
 	}
 
 	if err := scanner.Err(); err != nil {
 		log.Printf("Ошибка чтения: %v", err)
+		return
 	}
+
+	fmt.Println("--------")
+}
+
+func ContextC(reader *os.File, cfg *Config) {
+	scanner := bufio.NewScanner(reader)
+	prevStr := make([]string, 0, cfg.contextC)
+	separator := false
+	lastSeparator := false
+	outStr := 0 //счётчик вывода строк после найденного совпадения
+
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		if cfg.Matches(line) {
+			for _, str := range prevStr {
+				cfg.countStr++
+				cfg.Print(str)
+			}
+			cfg.countStr++
+			cfg.Print(line)
+			lastSeparator = false
+			prevStr = prevStr[:0]
+			outStr = cfg.contextC
+			separator = true
+			continue
+		}
+
+		if outStr > 0 {
+			cfg.countStr++
+			cfg.Print(line)
+			outStr--
+			continue
+		}
+
+		if outStr == 0 && separator {
+			fmt.Println("--------")
+			separator = false
+			lastSeparator = true
+		}
+
+		if len(prevStr) == cfg.contextC {
+			for i := 1; i < len(prevStr); i++ {
+				prevStr[i-1] = prevStr[i]
+			}
+			prevStr[len(prevStr)-1] = line
+		} else {
+			prevStr = append(prevStr, line)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Printf("Ошибка чтения: %v", err)
+		return
+	}
+
+	if !lastSeparator {
+		fmt.Println("--------")
+	}
+
+}
+
+func ContextBoth(reader *os.File, cfg *Config) {
+	scanner := bufio.NewScanner(reader)
+	prevStr := make([]string, 0, cfg.contextB)
+	separator := false
+	lastSeparator := false
+	outStr := 0
+
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		if cfg.Matches(line) {
+			for _, str := range prevStr {
+				cfg.countStr++
+				cfg.Print(str)
+			}
+			cfg.countStr++
+			cfg.Print(line)
+			lastSeparator = false
+			prevStr = prevStr[:0]
+			outStr = cfg.contextA
+			separator = true
+			continue
+		}
+
+		if outStr > 0 {
+			cfg.countStr++
+			cfg.Print(line)
+			lastSeparator = false
+			outStr--
+			continue
+		}
+
+		if outStr == 0 && separator {
+			fmt.Println("--------")
+			separator = false
+			lastSeparator = true
+		}
+
+		if len(prevStr) == cfg.contextB {
+			for i := 1; i < len(prevStr); i++ {
+				prevStr[i-1] = prevStr[i]
+			}
+			prevStr[len(prevStr)-1] = line
+		} else {
+			prevStr = append(prevStr, line)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Printf("Ошибка чтения: %v", err)
+		return
+	}
+
+	if !lastSeparator {
+		fmt.Println("--------")
+	}
+}
+
+func (cfg *Config) Matches(str string) bool {
+
+	var ok bool
+	templateStr := cfg.template
+
+	if cfg.iFlag {
+		templateStr = strings.ToLower(cfg.template)
+		str = strings.ToLower(str)
+	}
+
+	if cfg.FFlag {
+		ok = strings.Contains(str, templateStr)
+	} else {
+		re, err := regexp.Compile(templateStr)
+		if err != nil {
+			ok = strings.Contains(str, templateStr)
+		} else {
+			ok = re.MatchString(str)
+		}
+	}
+
+	if cfg.vFlag {
+		return !ok
+	}
+
+	return ok
+}
+
+func (cfg *Config) Print(str string) {
+	if cfg.nFlag {
+		fmt.Printf("%d. %s\n", cfg.countStr, str)
+		return
+	}
+
+	fmt.Println(str)
+}
+
+func SimpleGrep(reader *os.File, cfg *Config) {
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if cfg.Matches(line) {
+			cfg.countStr++
+			cfg.Print(line)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Printf("Ошибка чтения: %v", err)
+		return
+	}
+}
+
+func countMatches(reader *os.File, cfg *Config) int {
+	scanner := bufio.NewScanner(reader)
+	count := 0
+	for scanner.Scan() {
+		line := scanner.Text()
+		if cfg.Matches(line) {
+			count++
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Printf("Ошибка чтения: %v", err)
+		return 0
+	}
+
+	return count
 }
