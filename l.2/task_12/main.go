@@ -19,7 +19,7 @@ type Config struct {
 	FFlag    bool
 	iFlag    bool
 	vFlag    bool
-	countStr int
+	countStr int      //счётчик строк
 	template string   //шаблон для поиска
 	files    []string //файлы в которых нужно совершать поиск
 }
@@ -123,6 +123,7 @@ func processRead(reader *os.File, cfg *Config) {
 	}
 }
 
+// ContextA обработка данных с выставленным флагом -A
 func ContextA(reader *os.File, cfg *Config) {
 	scanner := bufio.NewScanner(reader)
 	separator := false
@@ -165,6 +166,7 @@ func ContextA(reader *os.File, cfg *Config) {
 	}
 }
 
+// ContextB обработка данных с выставленным флагом -B
 func ContextB(reader *os.File, cfg *Config) {
 	scanner := bufio.NewScanner(reader)
 	separator := false
@@ -207,6 +209,7 @@ func ContextB(reader *os.File, cfg *Config) {
 	fmt.Println("--------")
 }
 
+// ContextC обработка данных с выставленным флагом -C
 func ContextC(reader *os.File, cfg *Config) {
 	scanner := bufio.NewScanner(reader)
 	prevStr := make([]string, 0, cfg.contextC)
@@ -265,6 +268,7 @@ func ContextC(reader *os.File, cfg *Config) {
 
 }
 
+// ContextBoth обработка данных с выставленными флагами -A и -B
 func ContextBoth(reader *os.File, cfg *Config) {
 	scanner := bufio.NewScanner(reader)
 	prevStr := make([]string, 0, cfg.contextB)
@@ -323,6 +327,7 @@ func ContextBoth(reader *os.File, cfg *Config) {
 	}
 }
 
+// Matches поиск совпадений в строке с шаблоном, с учётом флагов: -i, -v, -F
 func (cfg *Config) Matches(str string) bool {
 
 	var ok bool
@@ -351,6 +356,7 @@ func (cfg *Config) Matches(str string) bool {
 	return ok
 }
 
+// Print вывод в консоль, проверяет флаг -n
 func (cfg *Config) Print(str string) {
 	if cfg.nFlag {
 		fmt.Printf("%d. %s\n", cfg.countStr, str)
@@ -360,6 +366,7 @@ func (cfg *Config) Print(str string) {
 	fmt.Println(str)
 }
 
+// SimpleGrep простой поиск совпадений, если не выставлены флаги: -A, -B, -C
 func SimpleGrep(reader *os.File, cfg *Config) {
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
@@ -376,6 +383,7 @@ func SimpleGrep(reader *os.File, cfg *Config) {
 	}
 }
 
+// countMatches если выставлен флаг -c
 func countMatches(reader *os.File, cfg *Config) int {
 	scanner := bufio.NewScanner(reader)
 	count := 0
