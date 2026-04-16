@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"regexp"
@@ -93,7 +94,7 @@ func processFile(filename string, cfg *Config) {
 }
 
 // обработка данных чтением
-func processRead(reader *os.File, cfg *Config) {
+func processRead(reader io.Reader, cfg *Config) {
 
 	cfg.countStr = 0
 
@@ -124,7 +125,7 @@ func processRead(reader *os.File, cfg *Config) {
 }
 
 // ContextA обработка данных с выставленным флагом -A
-func ContextA(reader *os.File, cfg *Config) {
+func ContextA(reader io.Reader, cfg *Config) {
 	scanner := bufio.NewScanner(reader)
 	separator := false
 	lastSeparator := false
@@ -167,7 +168,7 @@ func ContextA(reader *os.File, cfg *Config) {
 }
 
 // ContextB обработка данных с выставленным флагом -B
-func ContextB(reader *os.File, cfg *Config) {
+func ContextB(reader io.Reader, cfg *Config) {
 	scanner := bufio.NewScanner(reader)
 	separator := false
 	prevStr := make([]string, 0, cfg.contextB)
@@ -210,7 +211,7 @@ func ContextB(reader *os.File, cfg *Config) {
 }
 
 // ContextC обработка данных с выставленным флагом -C
-func ContextC(reader *os.File, cfg *Config) {
+func ContextC(reader io.Reader, cfg *Config) {
 	scanner := bufio.NewScanner(reader)
 	prevStr := make([]string, 0, cfg.contextC)
 	separator := false
@@ -269,7 +270,7 @@ func ContextC(reader *os.File, cfg *Config) {
 }
 
 // ContextBoth обработка данных с выставленными флагами -A и -B
-func ContextBoth(reader *os.File, cfg *Config) {
+func ContextBoth(reader io.Reader, cfg *Config) {
 	scanner := bufio.NewScanner(reader)
 	prevStr := make([]string, 0, cfg.contextB)
 	separator := false
@@ -367,7 +368,7 @@ func (cfg *Config) Print(str string) {
 }
 
 // SimpleGrep простой поиск совпадений, если не выставлены флаги: -A, -B, -C
-func SimpleGrep(reader *os.File, cfg *Config) {
+func SimpleGrep(reader io.Reader, cfg *Config) {
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -384,7 +385,7 @@ func SimpleGrep(reader *os.File, cfg *Config) {
 }
 
 // countMatches если выставлен флаг -c
-func countMatches(reader *os.File, cfg *Config) int {
+func countMatches(reader io.Reader, cfg *Config) int {
 	scanner := bufio.NewScanner(reader)
 	count := 0
 	for scanner.Scan() {
