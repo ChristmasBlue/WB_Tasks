@@ -1,30 +1,15 @@
 package main
 
 import (
-	"task-18/internal/config"
-	"task-18/internal/di"
-	"task-18/internal/logger"
-	"task-18/internal/repository"
-	"task-18/internal/web"
+	"log"
 
-	"go.uber.org/fx"
+	"task-18/cmd/api"
+	"task-18/internal/config"
 )
 
 func main() {
-	app := fx.New(
-		fx.Provide(
-			config.MustLoad,
-			logger.ProvideLogger,
-			repository.NewInMemoryRepo,
-			func(repo *repository.InMemoryRepo) repository.Storage {
-				return repo
-			},
-			web.NewCalendarHandler,
-		),
-
-		fx.Invoke(
-			di.StartHttpServer,
-		),
-	)
-	app.Run()
+	apiServer := api.NewServer(config.Envs.Port)
+	if err := apiServer.Run(); err != nil {
+		log.Fatal(err)
+	}
 }
