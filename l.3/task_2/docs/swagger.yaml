@@ -1,0 +1,230 @@
+definitions:
+  ginext.H:
+    additionalProperties: {}
+    type: object
+  github_com_Komilov31_url-shortener_internal_dto.DateDTO:
+    properties:
+      day:
+        type: integer
+      month:
+        type: integer
+      redirect_count:
+        type: integer
+      url_info:
+        items:
+          $ref: '#/definitions/github_com_Komilov31_url-shortener_internal_dto.UrlInfo'
+        type: array
+      year:
+        type: integer
+    type: object
+  github_com_Komilov31_url-shortener_internal_dto.MonthDTO:
+    properties:
+      month:
+        type: integer
+      redirect_count:
+        type: integer
+      url_info:
+        items:
+          properties:
+            short_url:
+              type: string
+            time:
+              type: string
+          type: object
+        type: array
+      year:
+        type: integer
+    type: object
+  github_com_Komilov31_url-shortener_internal_dto.RedirectInfo:
+    properties:
+      redirect_count:
+        type: integer
+      request_time:
+        items:
+          type: string
+        type: array
+      short_url:
+        type: string
+      url:
+        type: string
+      user_agent:
+        items:
+          type: string
+        type: array
+    type: object
+  github_com_Komilov31_url-shortener_internal_dto.UrlInfo:
+    properties:
+      short_url:
+        type: string
+      time:
+        type: string
+    type: object
+  github_com_Komilov31_url-shortener_internal_dto.UserAgentDTO:
+    properties:
+      redirect_count:
+        type: integer
+      short_url:
+        type: string
+      user_agent:
+        items:
+          type: string
+        type: array
+    type: object
+  github_com_Komilov31_url-shortener_internal_model.Url:
+    properties:
+      short_url:
+        type: string
+      url:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /:
+    get:
+      description: Returns the main HTML page of the URL shortener
+      produces:
+        - text/html
+      responses:
+        "200":
+          description: HTML page
+      summary: Get main page
+      tags:
+        - UI
+  /analytics/{short_url}:
+    get:
+      description: Returns analytics data for the given short URL
+      parameters:
+        - description: Short URL
+          in: path
+          name: short_url
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Komilov31_url-shortener_internal_dto.RedirectInfo'
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get analytics data for a short URL
+      tags:
+        - Analytics
+  /analytics/date:
+    get:
+      description: Returns aggregated analytics data grouped by date
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_Komilov31_url-shortener_internal_dto.DateDTO'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ginext.H'
+      summary: Get aggregated analytics by date
+      tags:
+        - Analytics
+  /analytics/month:
+    get:
+      description: Returns aggregated analytics data grouped by month
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_Komilov31_url-shortener_internal_dto.MonthDTO'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ginext.H'
+      summary: Get aggregated analytics by month
+      tags:
+        - Analytics
+  /analytics/user_agent:
+    get:
+      description: Returns aggregated analytics data grouped by user agent
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_Komilov31_url-shortener_internal_dto.UserAgentDTO'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ginext.H'
+      summary: Get aggregated analytics by user agent
+      tags:
+        - Analytics
+  /s/{short_url}:
+    get:
+      description: Redirects to the original URL corresponding to the given short
+        URL
+      parameters:
+        - description: Short URL
+          in: path
+          name: short_url
+          required: true
+          type: string
+      produces:
+        - text/plain
+      responses:
+        "301":
+          description: Redirect to original URL
+        "400":
+          description: Invalid short URL or not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Redirect to original URL by short URL
+      tags:
+        - URL
+  /shorten:
+    post:
+      consumes:
+        - application/json
+      description: Create a shortened URL from the provided original URL
+      parameters:
+        - description: URL to shorten
+          in: body
+          name: url
+          required: true
+          schema:
+            $ref: '#/definitions/github_com_Komilov31_url-shortener_internal_model.Url'
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Komilov31_url-shortener_internal_model.Url'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/ginext.H'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ginext.H'
+      summary: Create a shortened URL
+      tags:
+        - URL
+swagger: "2.0"

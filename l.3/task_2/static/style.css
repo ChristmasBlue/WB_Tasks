@@ -1,0 +1,117 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+}
+
+.container {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+}
+
+h1 {
+    color: #4a5568;
+    margin-bottom: 30px;
+    font-size: 2.5em;
+}
+
+.section {
+    margin-bottom: 30px;
+}
+
+h2 {
+    color: #2d3748;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-width: 120px;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.results {
+    margin-top: 30px;
+    text-align: left;
+    background: #f7fafc;
+    border-radius: 8px;
+    padding: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.results h3 {
+    margin-top: 0;
+    color: #2d3748;
+}
+
+.results pre {
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 20px;
+    }
+
+    .buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    button {
+        width: 100%;
+        max-width: 200px;
+    }
+}

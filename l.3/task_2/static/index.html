@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener Frontend</title>
+    <link rel="stylesheet" href="http://localhost:8080/static/style.css">
+</head>
+<body>
+<div class="container">
+    <h1>URL Shortener Service</h1>
+
+    <div class="section">
+        <h2>Create, Redirect or Get Analytics</h2>
+        <input type="text" id="shortUrlInput" placeholder="Enter URL or Short URL" />
+        <div class="buttons">
+            <button id="createBtn">Create</button>
+            <button id="redirectBtn">Redirect</button>
+            <button id="analyticsBtn">Get Analytics</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Aggregate Analytics</h2>
+        <div class="buttons">
+            <button id="userAgentBtn">By User Agent</button>
+            <button id="dateBtn">By Date</button>
+            <button id="monthBtn">By Month</button>
+        </div>
+    </div>
+
+    <div class="results" id="results"></div>
+</div>
+
+<script src="http://localhost:8080/static/script.js"></script>
+</body>
+</html>
