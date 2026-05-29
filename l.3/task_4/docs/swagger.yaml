@@ -1,0 +1,182 @@
+basePath: /
+definitions:
+  github_com_Komilov31_image-processor_internal_model.Image:
+    properties:
+      create_at:
+        type: string
+      id:
+        type: string
+      status:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Image Processor API. You can send image to process with multiple settings.
+    See methods for more information.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Image Processor API
+  version: "1.0"
+paths:
+  /:
+    get:
+      consumes:
+        - application/json
+      description: Get the main HTML page of the application
+      produces:
+        - text/html
+      responses:
+        "200":
+          description: HTML page content
+          schema:
+            type: string
+      summary: Get main page
+      tags:
+        - pages
+  /image/{id}:
+    delete:
+      consumes:
+        - application/json
+      description: Delete an image and its associated data by ID
+      parameters:
+        - description: Image ID
+          in: path
+          name: id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: status
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete image by ID
+      tags:
+        - images
+    get:
+      consumes:
+        - application/json
+      description: Download the processed image file by its ID
+      parameters:
+        - description: Image ID
+          in: path
+          name: id
+          required: true
+          type: string
+      produces:
+        - application/octet-stream
+      responses:
+        "200":
+          description: Processed image file
+          schema:
+            type: file
+        "400":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get processed image by ID
+      tags:
+        - images
+  /image/info/{id}:
+    get:
+      consumes:
+        - application/json
+      description: Get information about image processing status and metadata
+      parameters:
+        - description: Image ID
+          in: path
+          name: id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Image information
+          schema:
+            $ref: '#/definitions/github_com_Komilov31_image-processor_internal_model.Image'
+        "400":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get image processing status
+      tags:
+        - images
+  /upload:
+    post:
+      consumes:
+        - multipart/form-data
+      description: Upload an image file with metadata for processing
+      parameters:
+        - description: Image file to upload
+          in: formData
+          name: image
+          required: true
+          type: file
+        - description: JSON metadata for image processing
+          in: formData
+          name: metadata
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: id
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Upload image for processing
+      tags:
+        - images
+swagger: "2.0"

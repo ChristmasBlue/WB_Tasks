@@ -1,0 +1,272 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "Image Processor API. You can send image to process with multiple settings. See methods for more information.",
+    "title": "Image Processor API",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "name": "API Support",
+      "url": "http://www.swagger.io/support",
+      "email": "support@swagger.io"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "paths": {
+    "/": {
+      "get": {
+        "description": "Get the main HTML page of the application",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "text/html"
+        ],
+        "tags": [
+          "pages"
+        ],
+        "summary": "Get main page",
+        "responses": {
+          "200": {
+            "description": "HTML page content",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/image/info/{id}": {
+      "get": {
+        "description": "Get information about image processing status and metadata",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "images"
+        ],
+        "summary": "Get image processing status",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Image ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image information",
+            "schema": {
+              "$ref": "#/definitions/github_com_Komilov31_image-processor_internal_model.Image"
+            }
+          },
+          "400": {
+            "description": "error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "500": {
+            "description": "error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/image/{id}": {
+      "get": {
+        "description": "Download the processed image file by its ID",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/octet-stream"
+        ],
+        "tags": [
+          "images"
+        ],
+        "summary": "Get processed image by ID",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Image ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Processed image file",
+            "schema": {
+              "type": "file"
+            }
+          },
+          "400": {
+            "description": "error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "500": {
+            "description": "error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete an image and its associated data by ID",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "images"
+        ],
+        "summary": "Delete image by ID",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Image ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "status",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "400": {
+            "description": "error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "500": {
+            "description": "error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/upload": {
+      "post": {
+        "description": "Upload an image file with metadata for processing",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "images"
+        ],
+        "summary": "Upload image for processing",
+        "parameters": [
+          {
+            "type": "file",
+            "description": "Image file to upload",
+            "name": "image",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "JSON metadata for image processing",
+            "name": "metadata",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "id",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "400": {
+            "description": "error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "500": {
+            "description": "error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "github_com_Komilov31_image-processor_internal_model.Image": {
+      "type": "object",
+      "properties": {
+        "create_at": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
