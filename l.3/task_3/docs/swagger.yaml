@@ -1,0 +1,225 @@
+basePath: /
+definitions:
+  github_com_Komilov31_comment-tree_internal_dto.CreateComment:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      parent_id:
+        type: integer
+      text:
+        type: string
+    type: object
+  github_com_Komilov31_comment-tree_internal_dto.SearchText:
+    properties:
+      text:
+        type: string
+    type: object
+  github_com_Komilov31_comment-tree_internal_model.Comment:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/github_com_Komilov31_comment-tree_internal_model.Comment'
+        type: array
+      created_at:
+        type: string
+      id:
+        type: integer
+      parent_id:
+        type: integer
+      text:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: A Comment Tree API where can work with comment tree.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Comment Tree API
+  version: "1.0"
+paths:
+  /:
+    get:
+      description: Serve the main index.html page
+      produces:
+        - text/html
+      responses:
+        "200":
+          description: HTML page
+          schema:
+            type: string
+      summary: Get main page
+      tags:
+        - main
+  /comments:
+    get:
+      consumes:
+        - application/json
+      description: Получает комментарии с пагинацией и по ID родительского комментария
+      parameters:
+        - description: ID родительского комментария
+          in: query
+          name: parent
+          type: integer
+        - description: Номер страницы для пагинации
+          in: query
+          name: page
+          type: integer
+        - description: Количество комментариев на странице
+          in: query
+          name: limit
+          type: integer
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Список комментариев
+          schema:
+            items:
+              $ref: '#/definitions/github_com_Komilov31_comment-tree_internal_model.Comment'
+            type: array
+        "400":
+          description: error":"invalid payload" or "invalid id
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: error":"could not get comments
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить комментарии
+      tags:
+        - comments
+    post:
+      consumes:
+        - application/json
+      description: Создает новый комментарий в системе
+      parameters:
+        - description: Данные для создания комментария
+          in: body
+          name: comment
+          required: true
+          schema:
+            $ref: '#/definitions/github_com_Komilov31_comment-tree_internal_dto.CreateComment'
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Успешно созданный комментарий
+          schema:
+            $ref: '#/definitions/github_com_Komilov31_comment-tree_internal_dto.CreateComment'
+        "400":
+          description: error":"invalid payload
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: error":"could not create comment in db
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Создать комментарий
+      tags:
+        - comments
+  /comments/{id}:
+    delete:
+      consumes:
+        - application/json
+      description: Удаляет комментарий по его уникальному идентификатору
+      parameters:
+        - description: ID комментария для удаления
+          in: path
+          name: id
+          required: true
+          type: integer
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: status":"successfully deleted comment
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: error":"invalid id was provided" or "could not delete comment
+            from db
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Удалить комментарий по ID
+      tags:
+        - comments
+  /comments/all:
+    get:
+      consumes:
+        - application/json
+      description: Возвращает полный список всех комментариев без фильтров c пагинацией
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Все комментарии
+          schema:
+            items:
+              $ref: '#/definitions/github_com_Komilov31_comment-tree_internal_model.Comment'
+            type: array
+        "400":
+          description: error":"could not get comments
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить все комментарии
+      tags:
+        - comments
+  /comments/search:
+    post:
+      consumes:
+        - application/json
+      description: Ищет комментарии, содержащие указанный текст
+      parameters:
+        - description: Текст для поиска в комментариях
+          in: body
+          name: search
+          required: true
+          schema:
+            $ref: '#/definitions/github_com_Komilov31_comment-tree_internal_dto.SearchText'
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Найденные комментарии
+          schema:
+            items:
+              $ref: '#/definitions/github_com_Komilov31_comment-tree_internal_model.Comment'
+            type: array
+        "400":
+          description: error":"invalid payload
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: error":"could not get comments
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Поиск комментариев по тексту
+      tags:
+        - comments
+swagger: "2.0"

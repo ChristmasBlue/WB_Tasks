@@ -1,0 +1,9 @@
+postgres:
+  host: "postgres"
+  name: "comment-tree"
+  user: "user"
+  port: 5432
+http_server:
+  address: ":8080"
+  timeout: 4
+  idle_timeout: 60 

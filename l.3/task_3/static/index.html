@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comment Tree</title>
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+<div class="container">
+    <h1>Comment Tree</h1>
+
+    <div class="load-section">
+        <button id="load-comments-btn">Load Comments</button>
+    </div>
+
+    <div class="search-section">
+        <input type="text" id="search-input" placeholder="Search comments...">
+        <button id="search-btn">Find</button>
+        <button id="clear-search-btn">Clear Search</button>
+    </div>
+
+    <div id="comments-container">
+    </div>
+
+    <div class="new-comment-section">
+        <h2>Add New Comment</h2>
+        <input type="number" id="new-comment-parent-id" placeholder="Parent ID (optional)">
+        <textarea id="new-comment-text" placeholder="Write your comment..."></textarea>
+        <button id="create-comment-btn">Create Comment</button>
+    </div>
+</div>
+
+<script src="static/script.js"></script>
+</body>
+</html>
