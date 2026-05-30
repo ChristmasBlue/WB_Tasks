@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warehouse Control - Main</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+        }
+        .add-form {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .add-form input {
+            margin-right: 10px;
+            padding: 8px;
+        }
+        .add-form button {
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .actions button {
+            margin-right: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .edit-btn {
+            background: #ffc107;
+        }
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+        .history-btn {
+            background: #17a2b8;
+            color: white;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        .role-info {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Warehouse Control System</h1>
+    <div class="role-info" id="roleInfo"></div>
+
+    <div class="add-form" id="addForm">
+        <h2>Add New Item</h2>
+        <input type="text" id="addName" placeholder="Item Name" required>
+        <input type="number" id="addCount" placeholder="Count" required>
+        <button onclick="addItem()">Add Item</button>
+    </div>
+
+    <table id="itemsTable">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Count</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody id="itemsBody">
+        </tbody>
+    </table>
+</div>
+
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('editModal')">&times;</span>
+        <h2>Edit Item</h2>
+        <input type="text" id="editName" placeholder="Item Name">
+        <input type="number" id="editCount" placeholder="Count">
+        <button onclick="updateItem()">Update</button>
+    </div>
+</div>
+
+<div id="historyModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('historyModal')">&times;</span>
+        <h2>Change History</h2>
+        <table id="historyTable">
+            <thead>
+            <tr>
+                <th>User</th>
+                <th>Changed Column</th>
+                <th>Changed From</th>
+                <th>Change Time</th>
+            </tr>
+            </thead>
+            <tbody id="historyBody">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let items = [];
+    let historyData = [];
+    let currentItemId = null;
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+    const userId = parseInt(localStorage.getItem('user_id'));
+
+    if (!token || !role) {
+        window.location.href = 'login.html';
+    }
+
+    document.getElementById('roleInfo').textContent = `Logged in as: ${role}`;
+
+    if (role === 'viewer') {
+        document.getElementById('addForm').style.display = 'none';
+    }
+
+    async function loadData() {
+        try {
+            const [itemsResponse, historyResponse] = await Promise.all([
+                fetch('http://localhost:8080/items', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch('http://localhost:8080/users/history', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+            ]);
+
+            items = await itemsResponse.json();
+            historyData = await historyResponse.json();
+
+            renderItems();
+        } catch (error) {
+            console.error('Error loading data:', error);
+            alert('Error loading data');
+        }
+    }
+
+    function renderItems() {
+        const tbody = document.getElementById('itemsBody');
+        tbody.innerHTML = '';
+
+        items.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.name}</td>
+                    <td>${item.count}</td>
+                    <td class="actions">
+                        <button class="history-btn" onclick="viewHistory(${item.id})">View History</button>
+                        ${role === 'admin' || role === 'manager' ? `<button class="edit-btn" onclick="openEditModal(${item.id})">Edit</button>` : ''}
+                        ${role === 'admin' ? `<button class="delete-btn" onclick="deleteItem(${item.id})">Delete</button>` : ''}
+                    </td>
+                `;
+            tbody.appendChild(row);
+        });
+    }
+
+    async function addItem() {
+        const name = document.getElementById('addName').value;
+        const count = parseInt(document.getElementById('addCount').value);
+
+        if (!name || isNaN(count)) {
+            alert('Please fill all fields');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:8080/items', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ name, count })
+            });
+
+            if (response.ok) {
+                document.getElementById('addName').value = '';
+                document.getElementById('addCount').value = '';
+                loadData();
+            } else {
+                alert('Error adding item');
+            }
+        } catch (error) {
+            console.error('Error adding item:', error);
+        }
+    }
+
+    function openEditModal(id) {
+        const item = items.find(i => i.id === id);
+        if (item) {
+            currentItemId = id;
+            document.getElementById('editName').value = item.name;
+            document.getElementById('editCount').value = item.count;
+            document.getElementById('editModal').style.display = 'block';
+        }
+    }
+
+    async function updateItem() {
+        const name = document.getElementById('editName').value;
+        const count = parseInt(document.getElementById('editCount').value);
+
+        if (!name || isNaN(count)) {
+            alert('Please fill all fields');
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8080/items/${currentItemId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ name, count, user_id: userId })
+            });
+
+            if (response.ok) {
+                closeModal('editModal');
+                loadData();
+            } else {
+                alert('Error updating item');
+            }
+        } catch (error) {
+            console.error('Error updating item:', error);
+        }
+    }
+
+    async function deleteItem(id) {
+        if (confirm('Are you sure you want to delete this item?')) {
+            try {
+                const response = await fetch(`http://localhost:8080/items/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    loadData();
+                } else {
+                    alert('Error deleting item');
+                }
+            } catch (error) {
+                console.error('Error deleting item:', error);
+            }
+        }
+    }
+
+    function viewHistory(itemId) {
+        const tbody = document.getElementById('historyBody');
+        tbody.innerHTML = '';
+
+        historyData.forEach(userHistory => {
+            userHistory.history.forEach(change => {
+                if (change.item_id === itemId) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                            <td>${userHistory.name}</td>
+                            <td>${change.changed_column}</td>
+                            <td>${change.changed_from}</td>
+                            <td>${change.change_time}</td>
+                        `;
+                    tbody.appendChild(row);
+                }
+            });
+        });
+
+        document.getElementById('historyModal').style.display = 'block';
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    loadData();
+</script>
+</body>
+</html>

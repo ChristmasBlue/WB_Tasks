@@ -1,0 +1,7 @@
+postgres:
+  host: "postgres"
+  name: "warehouse-control"
+  user: "user"
+  port: 5432
+http_server:
+  address: ":8080"

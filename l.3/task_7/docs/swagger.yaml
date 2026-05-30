@@ -1,0 +1,289 @@
+basePath: /
+definitions:
+  gin.H:
+    additionalProperties: {}
+    type: object
+  wharehouse-control_internal_dto.CreateItem:
+    properties:
+      count:
+        type: integer
+      name:
+        type: string
+    required:
+      - count
+      - name
+    type: object
+  wharehouse-control_internal_dto.CreateUser:
+    properties:
+      name:
+        type: string
+      role:
+        type: string
+    required:
+      - name
+      - role
+    type: object
+  wharehouse-control_internal_dto.UpdateItem:
+    properties:
+      count:
+        type: integer
+      id:
+        type: integer
+      name:
+        type: string
+      user_id:
+        type: integer
+    required:
+      - user_id
+    type: object
+  wharehouse-control_internal_model.Change:
+    properties:
+      change_time:
+        type: string
+      changed_column:
+        type: string
+      changed_from:
+        type: string
+      item_id:
+        type: integer
+    type: object
+  wharehouse-control_internal_model.Item:
+    properties:
+      count:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  wharehouse-control_internal_model.User:
+    properties:
+      create_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      role:
+        type: string
+      token:
+        type: string
+    type: object
+  wharehouse-control_internal_model.UserHistory:
+    properties:
+      create_at:
+        type: string
+      history:
+        items:
+          $ref: '#/definitions/wharehouse-control_internal_model.Change'
+        type: array
+      id:
+        type: integer
+      name:
+        type: string
+      role:
+        type: string
+      token:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Api to create and manage items in warehouse
+  termsOfService: http://swagger.io/terms/
+  title: Warehouse Control API
+  version: "1.0"
+paths:
+  /:
+    get:
+      consumes:
+        - application/json
+      description: Get the main HTML page of the application
+      produces:
+        - text/html
+      responses:
+        "200":
+          description: HTML page content
+          schema:
+            type: string
+      summary: Get main page
+      tags:
+        - pages
+  /items:
+    get:
+      description: Get all items, requires authentication
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/wharehouse-control_internal_model.Item'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+        - BearerAuth: []
+      summary: Get all items
+      tags:
+        - items
+    post:
+      consumes:
+        - application/json
+      description: Create a new item, requires admin authentication
+      parameters:
+        - description: Item creation data
+          in: body
+          name: item
+          required: true
+          schema:
+            $ref: '#/definitions/wharehouse-control_internal_dto.CreateItem'
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/wharehouse-control_internal_model.Item'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+        - BearerAuth: []
+      summary: Create a new item
+      tags:
+        - items
+  /items/{id}:
+    delete:
+      description: Delete an item by ID, requires admin authentication
+      parameters:
+        - description: Item ID
+          in: path
+          name: id
+          required: true
+          type: integer
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+        - BearerAuth: []
+      summary: Delete an item
+      tags:
+        - items
+    put:
+      consumes:
+        - application/json
+      description: Update an item by ID, requires admin or manager authentication
+      parameters:
+        - description: Item ID
+          in: path
+          name: id
+          required: true
+          type: integer
+        - description: Update data
+          in: body
+          name: item
+          required: true
+          schema:
+            $ref: '#/definitions/wharehouse-control_internal_dto.UpdateItem'
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+        - BearerAuth: []
+      summary: Update an item
+      tags:
+        - items
+  /users:
+    post:
+      consumes:
+        - application/json
+      description: Create a new user with name and role, returns user with JWT token
+      parameters:
+        - description: User creation data
+          in: body
+          name: user
+          required: true
+          schema:
+            $ref: '#/definitions/wharehouse-control_internal_dto.CreateUser'
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/wharehouse-control_internal_model.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Create a new user
+      tags:
+        - users
+  /users/history:
+    get:
+      description: Get users with their change history, requires authentication
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/wharehouse-control_internal_model.UserHistory'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+        - BearerAuth: []
+      summary: Get users with changes
+      tags:
+        - users
+securityDefinitions:
+  BearerAuth:
+    description: 'Тип аутентификации - Bearer token. В поле авторизации введите: Bearer
+      {token}'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

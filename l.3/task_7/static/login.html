@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warehouse Control - Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background: #5a6fd8;
+        }
+        .message {
+            margin-top: 20px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Warehouse Control System</h1>
+    <p>Select your role to login:</p>
+    <select id="roleSelect">
+        <option value="">Choose role...</option>
+        <option value="admin">Admin</option>
+        <option value="manager">Manager</option>
+        <option value="viewer">Viewer</option>
+    </select>
+    <button onclick="login()">Login</button>
+    <div id="message" class="message"></div>
+</div>
+
+<script>
+    async function login() {
+        const role = document.getElementById('roleSelect').value;
+        if (!role) {
+            document.getElementById('message').textContent = 'Please select a role.';
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:8080/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: 'user',
+                    role: role
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Login failed');
+            }
+
+            const user = await response.json();
+            localStorage.setItem('token', user.token);
+            localStorage.setItem('role', user.role);
+            localStorage.setItem('user_id', user.id);
+            window.location.href = '/main';
+        } catch (error) {
+            document.getElementById('message').textContent = 'Login failed. Please try again.';
+            console.error(error);
+        }
+    }
+</script>
+</body>
+</html>
