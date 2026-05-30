@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Трекер продаж</title>
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+<header>
+    <h1>Трекер финансовых операций</h1>
+</header>
+
+<main>
+    <section id="add-item">
+        <h2>Добавить запись</h2>
+        <form id="add-form">
+            <label for="type">Тип:</label>
+            <select id="type" required>
+                <option value="доход">Доход</option>
+                <option value="расход">Расход</option>
+            </select>
+
+            <label for="amount">Сумма:</label>
+            <input type="number" id="amount" min="0" required>
+
+            <label for="date">Дата:</label>
+            <input type="date" id="date" required>
+
+            <label for="category">Категория:</label>
+            <input type="text" id="category" required>
+
+            <button type="submit">Добавить</button>
+        </form>
+    </section>
+
+    <section id="items">
+        <h2>Записи</h2>
+        <div id="filters">
+            <label for="filter-type">Фильтр по типу:</label>
+            <select id="filter-type">
+                <option value="">Все</option>
+                <option value="доход">Доход</option>
+                <option value="расход">Расход</option>
+            </select>
+
+            <label for="filter-category">Фильтр по категории:</label>
+            <input type="text" id="filter-category" placeholder="Категория">
+
+            <label for="sort-by">Сортировка:</label>
+            <select id="sort-by">
+                <option value="">Без сортировки</option>
+                <option value="date">По дате</option>
+                <option value="amount">По сумме</option>
+                <option value="type">По типу</option>
+                <option value="category">По категории</option>
+            </select>
+
+            <button id="apply-filters">Применить</button>
+        </div>
+        <table id="items-table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Тип</th>
+                <th>Сумма</th>
+                <th>Дата</th>
+                <th>Категория</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <section id="analytics">
+        <h2>Аналитика</h2>
+        <form id="analytics-form">
+            <label for="analytics-from">От:</label>
+            <input type="date" id="analytics-from">
+
+            <label for="analytics-to">До:</label>
+            <input type="date" id="analytics-to">
+
+            <button type="submit">Получить аналитику</button>
+        </form>
+        <div id="analytics-data">
+            <table id="analytics-table">
+                <thead>
+                <tr>
+                    <th>Показатель</th>
+                    <th>Значение</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <canvas id="analytics-chart" width="400" height="200"></canvas>
+        </div>
+    </section>
+
+    <section id="exports">
+        <h2>Экспорт</h2>
+        <button id="export-items-csv">Скачать все записи CSV</button>
+        <button id="export-analytics-csv">Скачать аналитику CSV</button>
+    </section>
+</main>
+
+<script src="static/script.js"></script>
+</body>
+</html>
